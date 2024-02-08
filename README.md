@@ -27,6 +27,6 @@ pip install -r requirements.txt
 3. Execute the main.
 ```bash
 cd code
-pytho3 main.py --dataset 'cifar-10'
+python3 main.py --dataset 'cifar-10'
 ```
 There are several parameters available. They are listed in the file `parse.py` 
