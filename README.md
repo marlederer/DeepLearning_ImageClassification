@@ -10,7 +10,7 @@ Welcome to the Media Content Representation and Information Extraction exercise!
 
 The German Traffic Signs dataset is a collection of images representing various traffic signs commonly found on roadways in Germany. Each image is labeled with the corresponding traffic sign class, making it an ideal dataset for tasks related to image classification and object recognition in the context of traffic signs.
 
-Dataset Source: [German Traffic Signs Dataset]([https://benchmark.ini.rub.de/gtsdb_dataset.html](https://benchmark.ini.rub.de/gtsrb_dataset.html))
+Dataset Source: [German Traffic Signs Dataset](https://benchmark.ini.rub.de/gtsdb_dataset.html](https://benchmark.ini.rub.de/gtsrb_dataset.html))
 
 ### CIFAR-10 Dataset
 
