@@ -4,6 +4,7 @@ import os
 
 from feature_extraction import create_three_channel_histograms
 
+
 def unpickle(file):
     import pickle
     with open(file, 'rb') as fo:
@@ -20,8 +21,9 @@ def show_images(images, labels, num_images=5):
         plt.axis('off')
     plt.show()
 
+
 def show_image_and_histogram(images, labels, histograms, bins=256, num_images=5):
-    fig, axes = plt.subplots(num_images, 4, figsize=(15, 4*num_images))
+    fig, axes = plt.subplots(num_images, 4, figsize=(15, 4 * num_images))
 
     axes[0, 1].set_title('Red Histogram', color='red')
     axes[0, 2].set_title('Green Histogram', color='green')
@@ -34,6 +36,7 @@ def show_image_and_histogram(images, labels, histograms, bins=256, num_images=5)
         for j, color in enumerate(['red', 'green', 'blue']):
             axes[i, j + 1].bar(np.arange(len(histograms[i, j, :])), histograms[i, j, :], color=color, alpha=0.5)
     plt.show()
+
 
 def get_labels_from_meta_file(file_path):
     meta_dict = unpickle(file_path)
@@ -61,4 +64,3 @@ img_histograms = create_three_channel_histograms(X)
 random_indices = np.random.randint(0, len(X), 5)
 labels = [label_names[label] for label in Y[random_indices]]
 show_image_and_histogram(X[random_indices], labels, img_histograms[random_indices])
-
