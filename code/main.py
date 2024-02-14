@@ -35,9 +35,6 @@ def show_image_and_histogram(images, labels, histograms, bins=256, num_images=5)
             axes[i, j + 1].bar(np.arange(len(histograms[i, j, :])), histograms[i, j, :], color=color, alpha=0.5)
     plt.show()
 
-
-
-
 def get_labels_from_meta_file(file_path):
     meta_dict = unpickle(file_path)
     label_names = meta_dict[b'label_names']
