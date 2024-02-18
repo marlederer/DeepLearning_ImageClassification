@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-from feature_extraction import create_three_channel_histograms
+from feature_extraction import create_three_channel_histograms, extract_SIFT_features
 
 
 def unpickle(file):
@@ -44,7 +44,7 @@ def get_labels_from_meta_file(file_path):
     label_names = [name.decode('utf-8') for name in label_names]
     return label_names
 
-
+# LOAD DATA
 path = os.path.join('..', 'data', 'cifar_10', 'cifar-10-python', 'cifar-10-batches-py')
 img_path = os.path.join(path, 'data_batch_1')
 meta_path = os.path.join(path, 'batches.meta')
@@ -58,9 +58,16 @@ Y = img_dict[b'labels']
 X = X.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1).astype("uint8")
 Y = np.array(Y)
 
+# FEATURE EXTRACTION
 img_histograms = create_three_channel_histograms(X)
 
 # Display some random images and their 3-channel histograms
 random_indices = np.random.randint(0, len(X), 5)
 labels = [label_names[label] for label in Y[random_indices]]
 show_image_and_histogram(X[random_indices], labels, img_histograms[random_indices])
+
+sift_keypoints, sift_descriptors = extract_SIFT_features(X)
+
+
+# CREATE MODEL
+
