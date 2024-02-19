@@ -9,8 +9,7 @@ import cv2
 
 matplotlib.use('TkAgg')
 
-
-from feature_extraction import create_three_channel_histograms, extract_SIFT_features, extract_ORB_features
+from feature_extraction import create_three_channel_histograms, extract_SIFT_features, extract_ORB_features, create_bovw
 
 
 def unpickle(file):
@@ -62,8 +61,6 @@ def get_labels_from_meta_file(file_path):
     return label_names
 
 
-
-
 # LOAD DATA
 num_training_batches = 5
 X_train_list = []
@@ -103,12 +100,24 @@ show_image_and_histogram(X_train[random_indices], labels, img_histograms[random_
 sift_keypoints_train, sift_descriptors_train = extract_SIFT_features(X_train)
 sift_keypoints_test, sift_descriptors_test = extract_SIFT_features(X_test)
 
-# CREATE MODEL
-#X, y = make_classification(n_samples=1000, n_features=4,n_informative=2, n_redundant=0,random_state=0, shuffle=False)
-clf = KNeighborsClassifier()
-clf.fit(img_histograms_train, y_train)
-predict = clf.predict(img_histograms_test)
+none_idxs_train = [i for i, item in enumerate(sift_descriptors_train) if item is None]
+none_idxs_test = [i for i, item in enumerate(sift_descriptors_test) if item is None]
 
-accuracy = accuracy_score(y_test, predict)
+filtered_sift_descriptors_train = [item for i, item in enumerate(sift_descriptors_train) if i not in none_idxs_train]
+filtered_sift_descriptors_test = [item for i, item in enumerate(sift_descriptors_test) if i not in none_idxs_test]
+
+filtered_ytrain = [item for i, item in enumerate(y_train) if i not in none_idxs_train]
+filtered_yest = [item for i, item in enumerate(y_test) if i not in none_idxs_test]
+
+bovw_train = create_bovw(filtered_sift_descriptors_train, 10)
+bovw_test = create_bovw(filtered_sift_descriptors_test, 10)
+
+# # CREATE MODEL
+# X, y = make_classification(n_samples=1000, n_features=4,n_informative=2, n_redundant=0,random_state=0, shuffle=False)
+clf = KNeighborsClassifier()
+clf.fit(bovw_train, filtered_ytrain)
+predict = clf.predict(bovw_test)
+
+accuracy = accuracy_score(filtered_yest, predict)
 print("Accuracy for historgram:", accuracy)
 ###

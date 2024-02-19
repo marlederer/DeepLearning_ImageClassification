@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from sklearn.cluster import KMeans
 
 
 def create_three_channel_histograms(images, bins=256):
@@ -97,3 +98,37 @@ def extract_ORB_features(images, debug=False):
             cv2.destroyAllWindows()
 
     return keypoints_list, descriptors_list
+
+def create_bovw(descriptors_list, num_clusters):
+    """
+    Creates Bag of Visual Words (BOVW) from a list of SIFT descriptors
+
+    Parameters
+    ----------
+    descriptors_list : list
+        List of SIFT descriptors for each image
+    num_clusters : int
+        Number of clusters for KMeans clustering
+
+    Returns
+    -------
+    bovw_features : numpy array
+        Bag of Visual Words (BOVW) features for all images
+    """
+
+    # Concatenate all descriptors into a single array
+    all_descriptors = np.concatenate(descriptors_list, axis=0)
+
+    print(all_descriptors.shape)
+    # Perform KMeans clustering
+    kmeans = KMeans(n_clusters=num_clusters)
+    kmeans.fit(all_descriptors)
+
+    # Assign descriptors to visual words
+    bovw_features = []
+    for descriptors in descriptors_list:
+        visual_words = kmeans.predict(descriptors)
+        histogram, _ = np.histogram(visual_words, bins=range(num_clusters + 1), density=True)
+        bovw_features.append(histogram)
+
+    return np.array(bovw_features)
