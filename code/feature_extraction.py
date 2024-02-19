@@ -99,7 +99,7 @@ def extract_ORB_features(images, debug=False):
 
     return keypoints_list, descriptors_list
 
-def create_bovw(descriptors_list, num_clusters, keypoints_list):
+def create_bovw(descriptors_list, num_clusters, images, keypoints_list):
     """
     Creates Bag of Visual Words (BOVW) from a list of SIFT descriptors
 
@@ -115,7 +115,39 @@ def create_bovw(descriptors_list, num_clusters, keypoints_list):
     bovw_features : numpy array
         Bag of Visual Words (BOVW) features for all images
     """
+    dico = []
 
+    sift = cv2.SIFT_create()
+
+    for img in images:
+        kp, des = sift.detectAndCompute(img, None)
+        if des is not None:
+            for d in des:
+                dico.append(d)
+
+    k = num_clusters * 10
+
+    kmeans = KMeans(n_clusters=k, verbose=1).fit(dico)
+
+    kmeans.verbose = False
+
+    histo_list = []
+
+    for img in images:
+        kp, des = sift.detectAndCompute(img, None)
+
+        histo = np.zeros(k)
+        nkp = np.size(kp)
+        if des is not None:
+            for d in des:
+                idx = kmeans.predict([d])
+                histo[idx] += 1 / nkp  # Because we need normalized histograms, I prefere to add 1/nkp directly
+
+        histo_list.append(histo)
+
+    return histo_list
+
+    """
     # Concatenate all descriptors into a single array
     all_descriptors = np.concatenate(descriptors_list, axis=0)
 
@@ -125,7 +157,7 @@ def create_bovw(descriptors_list, num_clusters, keypoints_list):
     kmeans.fit(all_descriptors)
 
     # Assign descriptors to visual words
-    """"
+    
     bovw_features = []
     for descriptors in descriptors_list:
         visual_words = kmeans.predict(descriptors)
@@ -133,7 +165,7 @@ def create_bovw(descriptors_list, num_clusters, keypoints_list):
         bovw_features.append(histogram)
 
     return np.array(bovw_features)
-    """
+    
     histo_list = []
     for keypoint in keypoints_list:
         nkp = np.size(len(keypoint))
@@ -146,3 +178,4 @@ def create_bovw(descriptors_list, num_clusters, keypoints_list):
             histo_list.append(histo)
 
     return histo_list
+    """

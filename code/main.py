@@ -113,15 +113,15 @@ filtered_sift_keypoints_test = [item for i, item in enumerate(sift_keypoints_tes
 filtered_ytrain = [item for i, item in enumerate(y_train) if i not in none_idxs_train]
 filtered_yest = [item for i, item in enumerate(y_test) if i not in none_idxs_test]
 
-bovw_train = create_bovw(filtered_sift_descriptors_train, 10, filtered_sift_keypoints_train)
-bovw_test = create_bovw(filtered_sift_descriptors_test, 10, filtered_sift_keypoints_test)
+bovw_train = create_bovw(filtered_sift_descriptors_train, 10, X_train, filtered_sift_keypoints_train)
+bovw_test = create_bovw(filtered_sift_descriptors_test, 10, X_test,filtered_sift_keypoints_test)
 
 # # CREATE MODEL
 # X, y = make_classification(n_samples=1000, n_features=4,n_informative=2, n_redundant=0,random_state=0, shuffle=False)
 clf = KNeighborsClassifier()
-clf.fit(np.array(bovw_train), filtered_ytrain)
+clf.fit(np.array(bovw_train), y_train)
 predict = clf.predict(bovw_test)
 
-accuracy = accuracy_score(filtered_yest, predict)
+accuracy = accuracy_score(y_test, predict)
 print("Accuracy for histogram:", accuracy)
 ###
