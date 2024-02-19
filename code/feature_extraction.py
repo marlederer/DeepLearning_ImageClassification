@@ -60,3 +60,40 @@ def extract_SIFT_features(images, debug=False):
             cv2.destroyAllWindows()
 
     return keypoints_list, descriptors_list
+
+def extract_ORB_features(images, debug=False):
+    """
+    converts the images to grayscale and extracts ORB features
+
+    Parameters
+    ----------
+    images : list
+        List of images which are 3D-arrays in shape (32, 32, 3)
+    debug : bool
+        displays the original and graysccale image if set to True
+
+    Returns
+    -------
+    keypoints_list: list
+        List of ORB-keypoints for each image
+    descriptors_list: list
+        List of ORB-descriptors for each image
+    """
+    orb = cv2.ORB_create()
+    keypoints_list = []
+    descriptors_list = []
+    for image in images:
+        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        keypoints, descriptors = orb.detectAndCompute(gray, None)
+        keypoints_list.append(keypoints)
+        descriptors_list.append(descriptors)
+
+        if debug:
+            gray_with_channels = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
+            concatenated_image = np.concatenate((image, gray_with_channels), axis=1)
+
+            cv2.imshow('Original and Grayscale Image', concatenated_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
+    return keypoints_list, descriptors_list

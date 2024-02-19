@@ -1,8 +1,16 @@
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
 import numpy as np
-import matplotlib.pyplot as plt
 import os
+import matplotlib
+import matplotlib.pyplot as plt
+import cv2
 
-from feature_extraction import create_three_channel_histograms, extract_SIFT_features
+matplotlib.use('TkAgg')
+
+
+from feature_extraction import create_three_channel_histograms, extract_SIFT_features, extract_ORB_features
 
 
 def unpickle(file):
@@ -10,6 +18,15 @@ def unpickle(file):
     with open(file, 'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
     return dict
+
+
+def load_cifar_batch(file):
+    batch_data = unpickle(file)
+    X = batch_data[b'data']
+    Y = batch_data[b'labels']
+    X = X.reshape(len(Y), 3, 32, 32).transpose(0, 2, 3, 1).astype("uint8")
+    Y = np.array(Y)
+    return X, Y
 
 
 def show_images(images, labels, num_images=5):
@@ -44,30 +61,54 @@ def get_labels_from_meta_file(file_path):
     label_names = [name.decode('utf-8') for name in label_names]
     return label_names
 
+
+
+
 # LOAD DATA
+num_training_batches = 5
+X_train_list = []
+Y_train_list = []
+
+for i in range(1, num_training_batches + 1):
+    filename = f"../data/cifar_10/cifar-10-python/cifar-10-batches-py/data_batch_{i}"
+    X_batch, Y_batch = load_cifar_batch(filename)
+    X_train_list.append(X_batch)
+    Y_train_list.append(Y_batch)
+
+X_train = np.concatenate(X_train_list)
+y_train = np.concatenate(Y_train_list)
+
+# Load test data
+X_test, y_test = load_cifar_batch("../data/cifar_10/cifar-10-python/cifar-10-batches-py/test_batch")
+
 path = os.path.join('..', 'data', 'cifar_10', 'cifar-10-python', 'cifar-10-batches-py')
 img_path = os.path.join(path, 'data_batch_1')
 meta_path = os.path.join(path, 'batches.meta')
 
-img_dict = unpickle(img_path)
 label_names = get_labels_from_meta_file(meta_path)
 
-X = img_dict[b'data']
-Y = img_dict[b'labels']
-
-X = X.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1).astype("uint8")
-Y = np.array(Y)
-
 # FEATURE EXTRACTION
-img_histograms = create_three_channel_histograms(X)
+"""
+img_histograms_train = create_three_channel_histograms(X_train)
+img_histograms_test = create_three_channel_histograms(X_test)
+
+img_histograms_train = img_histograms_train.reshape(len(img_histograms_train), -1)
+img_histograms_test = img_histograms_test.reshape(len(img_histograms_test), -1)
 
 # Display some random images and their 3-channel histograms
-random_indices = np.random.randint(0, len(X), 5)
-labels = [label_names[label] for label in Y[random_indices]]
-show_image_and_histogram(X[random_indices], labels, img_histograms[random_indices])
-
-sift_keypoints, sift_descriptors = extract_SIFT_features(X)
-
+random_indices = np.random.randint(0, len(X_train), 5)
+labels = [label_names[label] for label in Y_train[random_indices]]
+show_image_and_histogram(X_train[random_indices], labels, img_histograms[random_indices])
+"""
+sift_keypoints_train, sift_descriptors_train = extract_SIFT_features(X_train)
+sift_keypoints_test, sift_descriptors_test = extract_SIFT_features(X_test)
 
 # CREATE MODEL
+#X, y = make_classification(n_samples=1000, n_features=4,n_informative=2, n_redundant=0,random_state=0, shuffle=False)
+clf = KNeighborsClassifier()
+clf.fit(img_histograms_train, y_train)
+predict = clf.predict(img_histograms_test)
 
+accuracy = accuracy_score(y_test, predict)
+print("Accuracy for historgram:", accuracy)
+###
