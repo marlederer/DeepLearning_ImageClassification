@@ -99,7 +99,7 @@ def extract_ORB_features(images, debug=False):
 
     return keypoints_list, descriptors_list
 
-def create_bovw(descriptors_list, num_clusters):
+def create_bovw(descriptors_list, num_clusters, keypoints_list):
     """
     Creates Bag of Visual Words (BOVW) from a list of SIFT descriptors
 
@@ -121,10 +121,11 @@ def create_bovw(descriptors_list, num_clusters):
 
     print(all_descriptors.shape)
     # Perform KMeans clustering
-    kmeans = KMeans(n_clusters=num_clusters)
+    kmeans = KMeans(n_clusters=num_clusters*10)
     kmeans.fit(all_descriptors)
 
     # Assign descriptors to visual words
+    """"
     bovw_features = []
     for descriptors in descriptors_list:
         visual_words = kmeans.predict(descriptors)
@@ -132,3 +133,16 @@ def create_bovw(descriptors_list, num_clusters):
         bovw_features.append(histogram)
 
     return np.array(bovw_features)
+    """
+    histo_list = []
+    for keypoint in keypoints_list:
+        nkp = np.size(len(keypoint))
+
+        for d in all_descriptors:
+            #d = np.array(d, dtype=np.float64)
+            idx = kmeans.predict([d])
+            histo[idx] += 1 / nkp  # Because we need normalized histograms, I prefere to add 1/nkp directly
+
+            histo_list.append(histo)
+
+    return histo_list
