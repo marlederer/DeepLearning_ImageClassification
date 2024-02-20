@@ -62,6 +62,22 @@ def get_labels_from_meta_file(file_path):
 
 
 # LOAD DATA
+def load_data():
+    num_training_batches = 5
+    X_train_list = []
+    Y_train_list = []
+
+    for i in range(1, num_training_batches + 1):
+        filename = f"../data/cifar_10/cifar-10-python/cifar-10-batches-py/data_batch_{i}"
+        X_batch, Y_batch = load_cifar_batch(filename)
+        X_train_list.append(X_batch)
+        Y_train_list.append(Y_batch)
+
+    X_train = np.concatenate(X_train_list)
+    y_train = np.concatenate(Y_train_list)
+
+    return X_train, y_train
+
 num_training_batches = 5
 X_train_list = []
 Y_train_list = []
