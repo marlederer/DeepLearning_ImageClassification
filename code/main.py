@@ -63,6 +63,7 @@ def get_labels_from_meta_file(file_path):
 
 # LOAD DATA
 def load_data():
+    print("Starting Loading!")
     num_training_batches = 5
     X_train_list = []
     Y_train_list = []
@@ -76,6 +77,7 @@ def load_data():
     X_train = np.concatenate(X_train_list)
     y_train = np.concatenate(Y_train_list)
 
+    print("Loading complete!")
     return X_train, y_train
 
 num_training_batches = 5

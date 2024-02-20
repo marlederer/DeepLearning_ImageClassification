@@ -1,69 +1,108 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
-import torch.nn.functional as F
+import tensorflow as tf
 
-import main as m
+from tensorflow.keras import datasets, layers, models
+import matplotlib.pyplot as plt
+import numpy as np
+import ssl
+from sklearn import metrics
+from keras.models import load_model
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
+(train_images, train_labels), (test_images, test_labels) = datasets.cifar10.load_data()
+
+# Normalize pixel values to be between 0 and 1
+train_images, test_images = train_images / 255.0, test_images / 255.0
 
 # Assuming x_train is a 4-dimensional tensor of shape (num_samples, 3, 32, 32)
 # and y_train is a 1-dimensional tensor of shape (num_samples,)
 # Convert numpy arrays to PyTorch tensors
 
-x_train, y_train = m.load_data()
+class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+               'dog', 'frog', 'horse', 'ship', 'truck']
 
-x_train_tensor = torch.tensor(x_train, dtype=torch.float32)
-y_train_tensor = torch.tensor(y_train, dtype=torch.long)
+plt.figure(figsize=(10,10))
+for i in range(25):
+    plt.subplot(5,5,i+1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.grid(False)
+    plt.imshow(train_images[i])
+    # The CIFAR labels happen to be arrays,
+    # which is why you need the extra index
+    plt.xlabel(class_names[train_labels[i][0]])
+plt.show()
 
-# Create a DataLoader for handling batches during training
-train_dataset = TensorDataset(x_train_tensor, y_train_tensor)
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+model = models.Sequential()
+model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
 
-# Define the model
-class SimpleCNN(nn.Module):
-    def __init__(self):
-        super(SimpleCNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(32 * 8 * 8, 128)
-        self.fc2 = nn.Linear(128, 10)
-    
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 32 * 8 * 8)
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
-        return x
+model.summary()
 
-# Instantiate the model
-model = SimpleCNN()
+model.add(layers.Flatten())
+model.add(layers.Dense(64, activation='relu'))
+model.add(layers.Dense(10))
 
-# Define loss function and optimizer
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+model.summary()
 
-# Training loop
-num_epochs = 10
-for epoch in range(num_epochs):
-    running_loss = 0.0
-    for i, data in enumerate(train_loader, 0):
-        inputs, labels = data
-        optimizer.zero_grad()
-        
-        # Forward pass
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        
-        # Backward pass and optimization
-        loss.backward()
-        optimizer.step()
-        
-        running_loss += loss.item()
-        if i % 100 == 99:    # Print every 100 mini-batches
-            print('[%d, %5d] loss: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 100))
-            running_loss = 0.0
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+loaded_model = None
 
-print('Finished Training')
+try:
+    # Load the model from the file
+    loaded_model = load_model('richardParkman.h5')
+
+    # Now, you can use the loaded_model for predictions, evaluation, etc.
+    # For example:
+    # loaded_model.predict(new_data)
+
+except Exception as e:
+    print(f"Error loading the model: {e}")
+
+if loaded_model is None:
+    history = model.fit(train_images, train_labels, epochs=10,
+                    validation_data=(test_images, test_labels))
+    model.save('richardParkman.h5')
+
+"""
+plt.plot(history.history['accuracy'], label='accuracy')
+plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.ylim([0.5, 1])
+plt.legend(loc='lower right')
+"""
+if loaded_model is None:
+    test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
+else:
+    test_loss, test_acc = loaded_model.evaluate(test_images, test_labels, verbose=2)
+
+print(test_acc)
+
+actual = test_labels
+if loaded_model is None:
+    predicted = model.predict(test_images)
+else:
+    predicted = loaded_model.predict(test_images)
+
+
+y_pred_classes = np.argmax(predicted, axis=1)
+print(y_pred_classes)
+
+y_pred_classes = y_pred_classes.reshape(-1, 1)
+
+print(actual.shape)
+print(y_pred_classes.shape)
+
+confusion_matrix = metrics.confusion_matrix(actual, y_pred_classes)
+
+cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix = confusion_matrix)
+
+print(cm_display)
+cm_display.plot()
+plt.show()
