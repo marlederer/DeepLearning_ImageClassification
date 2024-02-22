@@ -431,7 +431,7 @@ EPOCHS = 30
 BATCH_SIZE = 64
 DIR = 'Saved_Models'
 
-LeNet_Model = LaNet(n_out=n_classes)
+LeNet_Model = LeNet(n_out=n_classes)
 model_name = "LeNet"
 
 with tf.Session() as sess:

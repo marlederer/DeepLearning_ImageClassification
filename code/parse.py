@@ -2,13 +2,9 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Go GTN")
-    parser.add_argument('--bpr_batch', type=int, default=2048,
-                        help="the batch size for bpr loss training procedure")  # 512 1024 2048 4096
-    parser.add_argument('--layer', type=int, default=3,
-                        help="the layer num of lightGCN")
-
-    parser.add_argument('--epochs', type=int, default=1000)  # 1000, ...
-
+    parser.add_argument('--bpr_batch', type=int, default=64,
+                        help="the batch size training procedure")
+    parser.add_argument('--epochs', type=int, default=30)
     parser.add_argument('--decay', type=float, default=1e-4,
                         help="the weight decay for l2 normalizaton")
     parser.add_argument('--dropout', type=int, default=0,
@@ -50,7 +46,7 @@ def parse_args():
                         help="the learning rate:0.001")  # 0.001
     parser.add_argument('--dataset', type=str, default='cifar-10',
                         help="available datasets: [cifar-10, gtsrb]")
-    parser.add_argument('--model', type=str, default='gtn', help='rec-model, support [gnt, lgn]')
+    parser.add_argument('--model', type=str, default='histogram', help='classification-model, support [hisotgram, bag-of-visual-words, LeNet, VGGnet]')
     parser.add_argument('--avg', type=int, default=0)
     parser.add_argument('--recdim', type=int, default=256,
                         help="the embedding size of GTN: 128, 256")

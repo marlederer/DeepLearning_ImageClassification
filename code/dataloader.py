@@ -1,59 +1,12 @@
-from abc import ABC
-
-from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import world
+from tensorflow.keras.datasets import cifar10
+from sklearn.model_selection import train_test_split
+import os
+import pickle
+import csv
 
-
-
-class BasicDataset(Dataset):
-    def __init__(self):
-        print("init dataset")
-
-    @property
-    def n_users(self):
-        raise NotImplementedError
-
-    @property
-    def m_items(self):
-        raise NotImplementedError
-
-    @property
-    def trainDataSize(self):
-        raise NotImplementedError
-
-    @property
-    def testDict(self):
-        raise NotImplementedError
-
-    @property
-    def allPos(self):
-        raise NotImplementedError
-
-    def getUserItemFeedback(self, users, items):
-        raise NotImplementedError
-
-    def getUserPosItems(self, users):
-        raise NotImplementedError
-
-    def getUserNegItems(self, users):
-        """
-        not necessary for large dataset
-        it's stupid to return all neg items in super large dataset
-        """
-        raise NotImplementedError
-
-    def getSparseGraph(self):
-        """
-        build a graph in torch.sparse.IntTensor.
-        Details in NGCF's matrix form
-        A =
-            |I,   R|
-            |R^T, I|
-        """
-        raise NotImplementedError
-
-class Loader(BasicDataset):
+class Loader():
     """
     Dataset type for pytorch \n
     Incldue graph information
@@ -63,53 +16,43 @@ class Loader(BasicDataset):
     def __init__(self, config=world.config, path="../data/cifar-10", flag_test=0):
         # train or test
         world.cprint(f'loading [{path}]')
-        self.split = config['A_split']
-        self.folds = config['A_n_fold']
-        # self.pre_norm = config['pre_norm']
-        self.mode_dict = {'train': 0, "test": 1}
-        self.mode = self.mode_dict['train']
-        self.n_user = 0
-        self.m_item = 0
-        train_file = path + '/train.txt'
-        test_file = path + '/test.txt'
-        self.path = path
-        trainUniqueUsers, trainItem, trainUser = [], [], []
-        testUniqueUsers, testItem, testUser = [], [], []
-        self.traindataSize = 0
-        self.testDataSize = 0
-        self.args = config['args']
+        if "cifar-10" in path:
+            (X_train, y_train), (self.X_test, y_test) = cifar10.load_data()
+            self.X_train, self.X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
+            self.y_test = y_test.reshape(len(y_test))
+            self.y_train = y_train.reshape(len(y_train))
+            self.y_val = y_val.reshape(len(y_val))
+            self.n_classes = len(np.unique(self.y_train))
+            print(f"{world.dataset} is ready to go")
+            return;
 
-        with open(train_file) as f:
-            for l in f.readlines():
-                if len(l) > 0:
-                    l = l.strip('\n').split(' ')
-                    items = [int(i) for i in l[1:]]
-                    uid = int(l[0])
-                    trainUniqueUsers.append(uid)
-                    trainUser.extend([uid] * len(items))
-                    trainItem.extend(items)
-                    self.m_item = max(self.m_item, max(items))
-                    self.n_user = max(self.n_user, uid)
-                    self.traindataSize += len(items)
+        if "gtsrb" in path:
+            os.chdir("D:\TU\\1_Semster\ML\Exercise_3\DeepLearning_ImageClassification")
+            training_file = "data\gtsrb\\traffic-signs-data\\train.p"
+            validation_file = "data\gtsrb\\traffic-signs-data\\valid.p"
+            testing_file = "data\gtsrb\\traffic-signs-data\\test.p"
 
-        self.trainUniqueUsers = np.array(trainUniqueUsers)
-        self.trainUser = np.array(trainUser)
-        self.trainItem = np.array(trainItem)
-        with open(test_file) as f:
-            for l in f.readlines():
+            with open(training_file, mode='rb') as f:
+                train = pickle.load(f)
+            with open(validation_file, mode='rb') as f:
+                valid = pickle.load(f)
+            with open(testing_file, mode='rb') as f:
+                test = pickle.load(f)
 
-                if len(l) > 0:
-                    l = l.strip('\n').split(' ')
+            # Mapping ClassID to traffic sign names
+            signs = []
+            with open('data\gtsrb\\signnames.csv', 'r') as csvfile:
+                signnames = csv.reader(csvfile, delimiter=',')
+                next(signnames, None)
+                for row in signnames:
+                    signs.append(row[1])
+                csvfile.close()
 
-                    try:
-                        items = [int(i) for i in l[1:]]
-                    except Exception:
-                        continue
-                    # items = [int(i) for i in l[1:]]
-                    uid = int(l[0])
-                    testUniqueUsers.append(uid)
-                    testUser.extend([uid] * len(items))
-                    testItem.extend(items)
-                    self.m_item = max(self.m_item, max(items))
-                    self.n_user = max(self.n_user, uid)
-                    self.testDataSize += len(items)
+            self.X_train, self.y_train = train['features'], train['labels']
+            self.X_valid, self.y_valid = valid['features'], valid['labels']
+            self.X_test, self.y_test = test['features'], test['labels']
+
+            self.n_classes = len(np.unique(self.y_train))
+
+            print(f"{world.dataset} is ready to go")
+            return;

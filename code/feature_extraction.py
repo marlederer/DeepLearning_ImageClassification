@@ -1,7 +1,8 @@
 import numpy as np
 import cv2
 from sklearn.cluster import KMeans
-
+import skimage.morphology as morp
+from skimage.filters import rank
 
 def create_three_channel_histograms(images, bins=256):
     """
@@ -179,3 +180,30 @@ def create_bovw(descriptors_list, num_clusters, images, keypoints_list):
 
     return histo_list
     """
+
+def gray_scale(image):
+    """
+    Convert images to gray scale.
+        Parameters:
+            image: An np.array compatible with plt.imshow.
+    """
+    return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+
+def local_histo_equalize(image):
+    """
+    Apply local histogram equalization to grayscale images.
+        Parameters:
+            image: A grayscale image.
+    """
+    kernel = morp.disk(30)
+    img_local = rank.equalize(image, footprint=kernel)
+    return img_local
+
+def image_normalize(image):
+    """
+    Normalize images to [0, 1] scale.
+        Parameters:
+            image: An np.array compatible with plt.imshow.
+    """
+    image = np.divide(image, 255)
+    return image
