@@ -41,6 +41,6 @@ pip install -r requirements.txt
 3. Execute the main.
 ```bash
 cd code
-python3 main.py --dataset 'cifar-10'
+run_main.py --dataset gtsrb --model LeNet
 ```
 There are several parameters available. They are listed in the file `parse.py` 
