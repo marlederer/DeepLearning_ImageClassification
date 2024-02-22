@@ -10,6 +10,8 @@ import numpy as np
 
 if world.dataset in ['cifar-10', 'gtsrb']:
     dataset = dataloader.Loader(path="../data/" + world.dataset)
+else:
+    print("Dataset: ", world.dataset, " not found. Check dataset parameter!")
 
 print('===========config================')
 pprint(world.config)

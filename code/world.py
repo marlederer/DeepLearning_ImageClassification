@@ -50,6 +50,7 @@ seed = args.seed
 dataset = args.dataset
 model_name = args.model
 
+BATCH_SIZE = args.bpr_batch
 TRAIN_epochs = args.epochs
 LOAD = args.load
 PATH = args.path

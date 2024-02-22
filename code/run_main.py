@@ -5,6 +5,7 @@ import numpy as np
 import time, datetime
 import Procedure
 from os.path import join
+import os
 import model
 import utils
 import tensorflow.compat.v1 as tf
@@ -24,16 +25,11 @@ seed = 2024
 
 # Validation set preprocessing
 X_valid_preprocessed = utils.preprocess(dataset.X_valid)
-
 normalized_images = utils.preprocess(dataset.X_train)
 
-BATCH_SIZE = 64
 DIR = 'Saved_Models'
 
 model = register.MODELS[world.model_name]
-
-x = tf.placeholder(tf.float32, (None, 32, 32, 1))
-y = tf.placeholder(tf.int32, (None))
 
 keep_prob = tf.placeholder(tf.float32)       # For fully-connected layers
 keep_prob_conv = tf.placeholder(tf.float32)  # For convolutional layers
@@ -45,13 +41,16 @@ with tf.Session() as sess:
     print()
     for i in range(world.TRAIN_epochs):
         normalized_images, y_train = shuffle(normalized_images, dataset.y_train)
-        for offset in range(0, num_examples, world.config['bpr_batch_size']):
-            end = offset + BATCH_SIZE
+        for offset in range(0, num_examples, world.BATCH_SIZE):
+            end = offset + world.BATCH_SIZE
             batch_x, batch_y = normalized_images[offset:end], y_train[offset:end]
             sess.run(model.training_operation,
-                     feed_dict={x: batch_x, y: batch_y, keep_prob: 0.5, keep_prob_conv: 0.7})
+                     feed_dict={model.x: batch_x,
+                                model.y: batch_y,
+                                keep_prob: 0.5,
+                                keep_prob_conv: 0.7})
 
-        validation_accuracy = model.evaluate(X_valid_preprocessed, dataset.y_valid)
+        validation_accuracy = model.evaluate(X_valid_preprocessed, dataset.y_valid, world.BATCH_SIZE)
         print("EPOCH {} : Validation Accuracy = {:.3f}%".format(i + 1, (validation_accuracy * 100)))
-    LeNet_Model.saver.save(sess, os.path.join(DIR, world.model_name))
+    model.saver.save(sess, os.path.join(DIR, world.model_name))
     print("Model saved")

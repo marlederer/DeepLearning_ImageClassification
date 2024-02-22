@@ -95,9 +95,9 @@ def list_images(dataset, dataset_y, ylabel="", cmap=None):
     plt.show()
 
 # Plotting sample examples
-list_images(X_train, y_train, "Training example")
-list_images(X_test, y_test, "Testing example")
-list_images(X_valid, y_valid, "Validation example")
+#list_images(X_train, y_train, "Training example")
+#list_images(X_test, y_test, "Testing example")
+#list_images(X_valid, y_valid, "Validation example")
 
 def histogram_plot(dataset, label):
     """
@@ -115,9 +115,9 @@ def histogram_plot(dataset, label):
     plt.show()
 
 # Plotting histograms of the count of each sign
-histogram_plot(y_train, "Training examples")
-histogram_plot(y_test, "Testing examples")
-histogram_plot(y_valid, "Validation examples")
+#histogram_plot(y_train, "Training examples")
+#histogram_plot(y_test, "Testing examples")
+#histogram_plot(y_valid, "Validation examples")
 
 X_train, y_train = shuffle(X_train, y_train)
 
@@ -180,7 +180,7 @@ def preprocess(data):
     return normalized_images
 
 
-class LaNet:
+class LeNet:
 
     def __init__(self, n_out=43, mu=0, sigma=0.1, learning_rate=0.001):
         # Hyperparameters

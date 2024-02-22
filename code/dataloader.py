@@ -18,11 +18,14 @@ class Loader():
         world.cprint(f'loading [{path}]')
         if "cifar-10" in path:
             (X_train, y_train), (self.X_test, y_test) = cifar10.load_data()
-            self.X_train, self.X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
+            self.X_train, self.X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
+
             self.y_test = y_test.reshape(len(y_test))
             self.y_train = y_train.reshape(len(y_train))
-            self.y_val = y_val.reshape(len(y_val))
+            self.y_valid = y_valid.reshape(len(y_valid))
+
             self.n_classes = len(np.unique(self.y_train))
+
             print(f"{world.dataset} is ready to go")
             return;
 

@@ -14,13 +14,13 @@ from sklearn.metrics import confusion_matrix
 
 matplotlib.use('TkAgg')
 
-from tensorflow.keras.layers import Flatten
 
 x = tf.placeholder(tf.float32, (None, 32, 32, 1))
 y = tf.placeholder(tf.int32, (None))
 
 keep_prob = tf.placeholder(tf.float32)       # For fully-connected layers
 keep_prob_conv = tf.placeholder(tf.float32)  # For convolutional layers
+
 
 class Histogram:
     def __init__(self, n_out=43, mu=0, sigma=0.1, learning_rate=0.001):
@@ -32,7 +32,7 @@ class BOVW:
 
 class LeNet:
 
-    def __init__(self, n_out=43, mu=0, sigma=0.1, learning_rate=0.001):
+    def __init__(self, n_out=10, mu=0, sigma=0.1, learning_rate=0.001):
         # Hyperparameters
         self.mu = mu
         self.sigma = sigma
@@ -102,8 +102,8 @@ class LeNet:
         self.fully_connected2 = tf.nn.relu(self.fully_connected2)
 
         # Layer 5 (Fully Connected): Input = 84. Output = 43.
-        self.output_weights = tf.Variable(tf.truncated_normal(shape=(84, 43), mean=self.mu, stddev=self.sigma))
-        self.output_bias = tf.Variable(tf.zeros(43))
+        self.output_weights = tf.Variable(tf.truncated_normal(shape=(84, n_out), mean=self.mu, stddev=self.sigma))
+        self.output_bias = tf.Variable(tf.zeros(n_out))
         self.logits = tf.add((tf.matmul(self.fully_connected2, self.output_weights)), self.output_bias)
 
         # Training operation
@@ -149,8 +149,8 @@ class VGGnet:
         self.mu = mu
         self.sigma = sigma
 
-        x = tf.placeholder(tf.float32, (None, 32, 32, 1))
-        y = tf.placeholder(tf.int32, (None))
+        self.x = x
+        self.y = y
 
         # Layer 1 (Convolutional): Input = 32x32x1. Output = 32x32x32.
         self.conv1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 1, 32), mean=self.mu, stddev=self.sigma))
@@ -249,6 +249,8 @@ class VGGnet:
         # Accuracy operation
         self.correct_prediction = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.one_hot_y, 1))
         self.accuracy_operation = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
+
+
 
         # Saving all variables
         self.saver = tf.train.Saver()
