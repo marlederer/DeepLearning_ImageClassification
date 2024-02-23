@@ -22,7 +22,6 @@ seed = 2024
 #Classifcation_Model = register.MODELS[world.model_name](world.config, dataset, world.args)
 
 ############
-
 # Validation set preprocessing
 X_valid_preprocessed = utils.preprocess(dataset.X_valid)
 normalized_images = utils.preprocess(dataset.X_train)

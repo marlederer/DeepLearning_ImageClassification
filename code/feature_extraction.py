@@ -3,183 +3,86 @@ import cv2
 from sklearn.cluster import KMeans
 import skimage.morphology as morp
 from skimage.filters import rank
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import accuracy_score, confusion_matrix
 
-def create_three_channel_histograms(images, bins=256):
-    """
-    creates the 3-channel histograms (red, green, blue) for all images
-
-    Parameters
-    ----------
-    images : list
-        List of images which are 3D-arrays in shape (32, 32, 3)
-    bins : int
-        number of desired bins. default value of 256 means that now pixel values are grouped together
-
-    Returns
-    -------
-    histograms: np.array
-        Array of all histograms, has shape of [len(images), 3, bins]
-    """
+# Function to extract 3-channel histograms from images
+def extract_histograms(images, bins=256):
+    print('Extracting 3-channel histograms for {} images...'.format(len(images)))
     histograms = []
     for image in images:
-        histograms.append([np.histogram(image[:, :, i], bins=bins, range=(0, 256))[0] for i in range(3)])
+        hist = []
+        for channel in range(3):
+            hist.append(cv2.calcHist([image], [channel], None, [bins], [0, 256]))
+        histograms.append(np.concatenate(hist))
+
+    print('Extracted {} histograms'.format(len(histograms)))
     return np.array(histograms)
 
-def extract_SIFT_features(images, debug=False):
-    """
-    converts the images to grayscale and extracts SIFT features
 
-    Parameters
-    ----------
-    images : list
-        List of images which are 3D-arrays in shape (32, 32, 3)
-    debug : bool
-        displays the original and graysccale image if set to True
-
-    Returns
-    -------
-    keypoints_list: list
-        List of SIFT-keypoints for each image
-    descriptors_list: list
-        List of SIFT-descriptors for each image
-    """
-
+# Function to extract SIFT descriptors
+def extract_sift_descriptors(images):
+    print('Extracting SIFT descriptors for {} images...'.format(len(images)))
     sift = cv2.SIFT_create()
-    keypoints_list = []
-    descriptors_list = []
+    descriptors = []
     for image in images:
-        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        keypoints, descriptors = sift.detectAndCompute(gray, None)
-        keypoints_list.append(keypoints)
-        descriptors_list.append(descriptors)
+        keypoints, descriptor = sift.detectAndCompute(image, None)
+        if descriptor is not None:
+            descriptors.extend(descriptor)
 
-        if debug:
-            gray_with_channels = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
-            concatenated_image = np.concatenate((image, gray_with_channels), axis=1)
+    print('Extracted {} SIFT descriptors for {} images'.format(len(descriptors), len(images)))
+    return np.array(descriptors)
 
-            cv2.imshow('Original and Grayscale Image', concatenated_image)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
 
-    return keypoints_list, descriptors_list
+def create_visual_vocabulary(X_train_sift, num_clusters):
+    print('Creating visual vocabulary with {} clusters...'.format(num_clusters))
+    # Create KMeans instance
+    kmeans = KMeans(n_clusters=num_clusters)
+    # Fit KMeans to the SIFT descriptors
+    kmeans.fit(X_train_sift)
+    # Get cluster centers
+    visual_vocabulary = kmeans.cluster_centers_
+    print('Visual vocabulary created with {} clusters'.format(num_clusters))
+    return kmeans, visual_vocabulary
 
-def extract_ORB_features(images, debug=False):
-    """
-    converts the images to grayscale and extracts ORB features
 
-    Parameters
-    ----------
-    images : list
-        List of images which are 3D-arrays in shape (32, 32, 3)
-    debug : bool
-        displays the original and graysccale image if set to True
-
-    Returns
-    -------
-    keypoints_list: list
-        List of ORB-keypoints for each image
-    descriptors_list: list
-        List of ORB-descriptors for each image
-    """
-    orb = cv2.ORB_create()
-    keypoints_list = []
-    descriptors_list = []
-    for image in images:
-        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        keypoints, descriptors = orb.detectAndCompute(gray, None)
-        keypoints_list.append(keypoints)
-        descriptors_list.append(descriptors)
-
-        if debug:
-            gray_with_channels = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
-            concatenated_image = np.concatenate((image, gray_with_channels), axis=1)
-
-            cv2.imshow('Original and Grayscale Image', concatenated_image)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
-
-    return keypoints_list, descriptors_list
-
-def create_bovw(descriptors_list, num_clusters, images, keypoints_list):
-    """
-    Creates Bag of Visual Words (BOVW) from a list of SIFT descriptors
-
-    Parameters
-    ----------
-    descriptors_list : list
-        List of SIFT descriptors for each image
-    num_clusters : int
-        Number of clusters for KMeans clustering
-
-    Returns
-    -------
-    bovw_features : numpy array
-        Bag of Visual Words (BOVW) features for all images
-    """
-    dico = []
-
+def create_bag_of_visual_words(images, kmeans, num_clusters):
+    print('Creating Bag of Visual Words for {} images...'.format(len(images)))
+    histograms = []
     sift = cv2.SIFT_create()
+    for image in images:
+        keypoints, descriptors = sift.detectAndCompute(image, None)
+        if descriptors is not None:
+            # Assign each descriptor to the closest cluster center
+            labels = kmeans.predict(descriptors)
+            # Count occurrences of each cluster center
+            hist, _ = np.histogram(labels, bins=num_clusters, range=(0, num_clusters - 1))
+            histograms.append(hist)
+        else:
+            # If no descriptors found, append zeros
+            histograms.append(np.zeros(num_clusters))
+    print('Created Bag of Visual Words for {} images'.format(len(histograms)))
+    return np.array(histograms)
 
-    for img in images:
-        kp, des = sift.detectAndCompute(img, None)
-        if des is not None:
-            for d in des:
-                dico.append(d)
+# Evaluate models
+def evaluate_model(model, X_val, y_val, label_names):
+    y_pred = model.predict(X_val)
+    acc = accuracy_score(y_val, y_pred)
+    cm = confusion_matrix(y_val, y_pred)
 
-    k = num_clusters * 10
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False)
+    plt.title('Confusion Matrix')
+    plt.xlabel('Predicted Labels')
+    plt.ylabel('True Labels')
 
-    kmeans = KMeans(n_clusters=k, verbose=1).fit(dico)
+    if label_names is not None:
+        plt.xticks(ticks=np.arange(len(label_names)), labels=label_names, rotation=45)
+        plt.yticks(ticks=np.arange(len(label_names)), labels=label_names, rotation=0)
 
-    kmeans.verbose = False
-
-    histo_list = []
-
-    for img in images:
-        kp, des = sift.detectAndCompute(img, None)
-
-        histo = np.zeros(k)
-        nkp = np.size(kp)
-        if des is not None:
-            for d in des:
-                idx = kmeans.predict([d])
-                histo[idx] += 1 / nkp  # Because we need normalized histograms, I prefere to add 1/nkp directly
-
-        histo_list.append(histo)
-
-    return histo_list
-
-    """
-    # Concatenate all descriptors into a single array
-    all_descriptors = np.concatenate(descriptors_list, axis=0)
-
-    print(all_descriptors.shape)
-    # Perform KMeans clustering
-    kmeans = KMeans(n_clusters=num_clusters*10)
-    kmeans.fit(all_descriptors)
-
-    # Assign descriptors to visual words
-    
-    bovw_features = []
-    for descriptors in descriptors_list:
-        visual_words = kmeans.predict(descriptors)
-        histogram, _ = np.histogram(visual_words, bins=range(num_clusters + 1), density=True)
-        bovw_features.append(histogram)
-
-    return np.array(bovw_features)
-    
-    histo_list = []
-    for keypoint in keypoints_list:
-        nkp = np.size(len(keypoint))
-
-        for d in all_descriptors:
-            #d = np.array(d, dtype=np.float64)
-            idx = kmeans.predict([d])
-            histo[idx] += 1 / nkp  # Because we need normalized histograms, I prefere to add 1/nkp directly
-
-            histo_list.append(histo)
-
-    return histo_list
-    """
+    plt.show()
+    return acc, cm
 
 def gray_scale(image):
     """

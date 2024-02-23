@@ -11,6 +11,13 @@ import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 from tensorflow.keras.layers import Flatten
 from sklearn.metrics import confusion_matrix
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.datasets import cifar10
+from sklearn.cluster import KMeans
+import cv2
+from feature_extraction import evaluate_model, create_bag_of_visual_words, create_visual_vocabulary, extract_sift_descriptors, extract_histograms
 
 matplotlib.use('TkAgg')
 
@@ -18,17 +25,65 @@ matplotlib.use('TkAgg')
 x = tf.placeholder(tf.float32, (None, 32, 32, 1))
 y = tf.placeholder(tf.int32, (None))
 
+# BOVW & Histogram
+
+
 keep_prob = tf.placeholder(tf.float32)       # For fully-connected layers
 keep_prob_conv = tf.placeholder(tf.float32)  # For convolutional layers
 
 
 class Histogram:
-    def __init__(self, n_out=43, mu=0, sigma=0.1, learning_rate=0.001):
-        self.hubert = 1
+    def __init__(self, dataset = 0, n_out=43, mu=0, sigma=0.1, learning_rate=0.001):
+        # Train and test variables
+        y_train = dataset.y_train
+        y_test = dataset.y_test
+
+        X_train_hist = extract_histograms(dataset.X_train)
+        X_test_hist = extract_histograms(dataset.X_test)
+        X_train_hist = np.squeeze(X_train_hist)
+        X_test_hist = np.squeeze(X_test_hist)
+
+        print('Training models...')
+        print('Training Random Forest Classifier for histogram-based approach...')
+        rf_classifier_hist = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf_classifier_hist.fit(X_train_hist, y_train)
+
+        acc_hist, cm_hist = evaluate_model(rf_classifier_hist, X_test_hist, y_test, dataset.label_names)
+
+        print("Accuracy per class (Histogram-based approach):")
+        print(acc_hist)
+        print("Confusion Matrix (Histogram-based approach):")
+        print(cm_hist)
+
 
 class BOVW:
-    def __init__(self, n_out=43, mu=0, sigma=0.1, learning_rate=0.001):
-        self.bert = 1
+    def __init__(self, dataset=0, n_out=43, mu=0, sigma=0.1, learning_rate=0.001):
+        # Train and test variables
+        X_train = dataset.X_train
+        y_train = dataset.y_train
+        X_test = dataset.X_test
+        y_test = dataset.y_test
+
+        num_clusters = 10 * dataset.n_classes	
+
+        X_train_sift = extract_sift_descriptors(X_train)
+        X_test_sift = extract_sift_descriptors(X_test)
+
+        kmeans, visual_vocabulary = create_visual_vocabulary(X_train_sift, num_clusters)
+
+        X_train_bovw = create_bag_of_visual_words(X_train, kmeans, num_clusters)
+        X_test_bovw = create_bag_of_visual_words(X_test, kmeans, num_clusters)
+
+        print('Training Random Forest Classifier for SIFT + Bag of Words approach...')
+        rf_classifier_bow = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf_classifier_bow.fit(X_train_bovw, y_train)
+
+        acc_bow, cm_bow = evaluate_model(rf_classifier_bow, X_test_bovw, y_test, dataset.label_names)
+
+        print("Accuracy per class (SIFT + Bag of Words approach):")
+        print(acc_bow)
+        print("Confusion Matrix (SIFT + Bag of Words approach):")
+        print(cm_bow)
 
 class LeNet:
 

@@ -1,2 +1,2 @@
-model_checkpoint_path: "VGGNet"
-all_model_checkpoint_paths: "VGGNet"
+model_checkpoint_path: "LeNet"
+all_model_checkpoint_paths: "LeNet"

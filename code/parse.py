@@ -46,7 +46,7 @@ def parse_args():
                         help="the learning rate:0.001")  # 0.001
     parser.add_argument('--dataset', type=str, default='cifar-10',
                         help="available datasets: [cifar-10, gtsrb]")
-    parser.add_argument('--model', type=str, default='histogram', help='classification-model, support [hisotgram, bag-of-visual-words, LeNet, VGGnet]')
+    parser.add_argument('--model', type=str, default='hist', help='classification-model, support [hist, bovw, LeNet, VGGnet]')
     parser.add_argument('--avg', type=int, default=0)
     parser.add_argument('--recdim', type=int, default=256,
                         help="the embedding size of GTN: 128, 256")

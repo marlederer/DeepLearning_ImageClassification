@@ -6,6 +6,7 @@ import os
 import pickle
 import csv
 
+
 class Loader():
     """
     Dataset type for pytorch \n
@@ -26,14 +27,17 @@ class Loader():
 
             self.n_classes = len(np.unique(self.y_train))
 
+            self.label_names = ['Airplane', 'Automobile', 'Bird', 'Cat', 'Deer', 'Dog', 'Frog', 'Horse', 'Ship', 'Truck']
+
             print(f"{world.dataset} is ready to go")
             return;
 
         if "gtsrb" in path:
-            os.chdir("D:\TU\\1_Semster\ML\Exercise_3\DeepLearning_ImageClassification")
-            training_file = "data\gtsrb\\traffic-signs-data\\train.p"
-            validation_file = "data\gtsrb\\traffic-signs-data\\valid.p"
-            testing_file = "data\gtsrb\\traffic-signs-data\\test.p"
+            #os.chdir("D:\TU\\1_Semster\ML\Exercise_3\DeepLearning_ImageClassification")
+            #print("Seas: ", os.getcwd())
+            training_file = "\\data\gtsrb\\traffic-signs-data\\train.p"
+            validation_file = "\\data\gtsrb\\traffic-signs-data\\valid.p"
+            testing_file = "\\data\gtsrb\\traffic-signs-data\\test.p"
 
             with open(training_file, mode='rb') as f:
                 train = pickle.load(f)
@@ -56,6 +60,8 @@ class Loader():
             self.X_test, self.y_test = test['features'], test['labels']
 
             self.n_classes = len(np.unique(self.y_train))
+
+            self.label_names = None
 
             print(f"{world.dataset} is ready to go")
             return;

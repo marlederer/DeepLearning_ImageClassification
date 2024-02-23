@@ -25,7 +25,7 @@ sys.path.append(join(CODE_PATH, 'sources'))
 
 config = {}
 all_dataset = ['cifar-10', 'gtsrb']
-all_models = ['histogram', 'bag-of-visual-words', 'LeNet', 'VGGnet']
+all_models = ['hist', 'bovw', 'LeNet', 'VGGnet']
 # config['batch_size'] = 4096
 config['bpr_batch_size'] = args.bpr_batch
 config['latent_dim_rec'] = args.recdim
