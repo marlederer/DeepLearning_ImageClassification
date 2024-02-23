@@ -6,6 +6,13 @@ import os
 import pickle
 import csv
 
+#Set Dir
+current_dir = os.path.abspath(__file__)
+# Navigate to the parent directory (one level up)
+parent_dir = os.path.dirname(current_dir)
+# Set the working directory to the parent directory
+os.chdir(parent_dir)
+print("\nDir: ", parent_dir)
 
 class Loader():
     """
@@ -35,9 +42,9 @@ class Loader():
         if "gtsrb" in path:
             #os.chdir("D:\TU\\1_Semster\ML\Exercise_3\DeepLearning_ImageClassification")
             print("Seas: ", os.getcwd())
-            training_file = "data\gtsrb\\traffic-signs-data\\train.p"
-            validation_file = "data\gtsrb\\traffic-signs-data\\valid.p"
-            testing_file = "data\gtsrb\\traffic-signs-data\\test.p"
+            training_file = "..\\data\gtsrb\\traffic-signs-data\\train.p"
+            validation_file = "..\\data\gtsrb\\traffic-signs-data\\valid.p"
+            testing_file = "..\\data\gtsrb\\traffic-signs-data\\test.p"
 
             with open(training_file, mode='rb') as f:
                 train = pickle.load(f)
@@ -48,7 +55,7 @@ class Loader():
 
             # Mapping ClassID to traffic sign names
             signs = []
-            with open('data\gtsrb\\signnames.csv', 'r') as csvfile:
+            with open('..\\data\gtsrb\\signnames.csv', 'r') as csvfile:
                 signnames = csv.reader(csvfile, delimiter=',')
                 next(signnames, None)
                 for row in signnames:
