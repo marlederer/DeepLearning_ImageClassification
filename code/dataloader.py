@@ -34,10 +34,10 @@ class Loader():
 
         if "gtsrb" in path:
             #os.chdir("D:\TU\\1_Semster\ML\Exercise_3\DeepLearning_ImageClassification")
-            #print("Seas: ", os.getcwd())
-            training_file = "\\data\gtsrb\\traffic-signs-data\\train.p"
-            validation_file = "\\data\gtsrb\\traffic-signs-data\\valid.p"
-            testing_file = "\\data\gtsrb\\traffic-signs-data\\test.p"
+            print("Seas: ", os.getcwd())
+            training_file = "data\gtsrb\\traffic-signs-data\\train.p"
+            validation_file = "data\gtsrb\\traffic-signs-data\\valid.p"
+            testing_file = "data\gtsrb\\traffic-signs-data\\test.p"
 
             with open(training_file, mode='rb') as f:
                 train = pickle.load(f)

@@ -64,6 +64,7 @@ class BOVW:
         X_test = dataset.X_test
         y_test = dataset.y_test
 
+        print("Num classes: ", dataset.n_classes) 
         num_clusters = 10 * dataset.n_classes	
 
         X_train_sift = extract_sift_descriptors(X_train)
