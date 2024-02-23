@@ -12,7 +12,6 @@ current_dir = os.path.abspath(__file__)
 parent_dir = os.path.dirname(current_dir)
 # Set the working directory to the parent directory
 os.chdir(parent_dir)
-print("\nDir: ", parent_dir)
 
 class Loader():
     """
@@ -40,8 +39,6 @@ class Loader():
             return;
 
         if "gtsrb" in path:
-            #os.chdir("D:\TU\\1_Semster\ML\Exercise_3\DeepLearning_ImageClassification")
-            print("Seas: ", os.getcwd())
             training_file = "..\\data\gtsrb\\traffic-signs-data\\train.p"
             validation_file = "..\\data\gtsrb\\traffic-signs-data\\valid.p"
             testing_file = "..\\data\gtsrb\\traffic-signs-data\\test.p"
