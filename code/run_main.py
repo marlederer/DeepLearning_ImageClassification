@@ -21,6 +21,7 @@ from sklearn.metrics import confusion_matrix
 
 import register
 from register import dataset
+from keras.preprocessing.image import ImageDataGenerator
 
 seed = 2024
 
@@ -41,6 +42,14 @@ if world.model_name in ['LeNet', 'VGGnet']:
         end = time.time()
         print("Preprocessing of", world.model_name, "with dataset:", world.dataset, "took", end-start, "s")
         print()
+
+        datagen = ImageDataGenerator(
+            rotation_range=20,
+            width_shift_range=0.2,
+            height_shift_range=0.2,
+            zoom_range=0.2,
+            horizontal_flip=True)
+
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
             num_examples = len(dataset.y_train)
@@ -49,9 +58,22 @@ if world.model_name in ['LeNet', 'VGGnet']:
             start = time.time()
             for i in range(world.TRAIN_epochs):
                 normalized_images, dataset.y_train = shuffle(normalized_images, dataset.y_train)
+
+                # Step 3: Use the flag to determine whether to apply augmentation
+                if world.AUGMENTATION:
+                    # Apply augmentation using ImageDataGenerator
+                    datagen.fit(normalized_images)
+                    augmented_data = datagen.flow(normalized_images, dataset.y_train, batch_size=world.BATCH_SIZE)
+                else:
+                    augmented_data = zip(normalized_images, dataset.y_train)
+
                 for offset in range(0, num_examples, world.BATCH_SIZE):
                     end = offset + world.BATCH_SIZE
-                    batch_x, batch_y = normalized_images[offset:end], dataset.y_train[offset:end]
+                    if world.AUGMENTATION:
+                        batch_x, batch_y = augmented_data.next()
+                    else:
+                        batch_x, batch_y = normalized_images[offset:end], dataset.y_train[offset:end]
+
                     sess.run(model.training_operation,
                              feed_dict={model.x: batch_x,
                                         model.y: batch_y,
@@ -61,7 +83,7 @@ if world.model_name in ['LeNet', 'VGGnet']:
                 validation_accuracy = model.evaluate(X_valid_preprocessed, dataset.y_valid, world.BATCH_SIZE)
                 print("EPOCH {} : Validation Accuracy = {:.3f}%".format(i + 1, (validation_accuracy * 100)))
             end = time.time()
-            model.saver.save(sess, os.path.join("..//", DIR, world.model_name + "-" + world.dataset))
+            model.saver.save(sess, os.path.join("..//", DIR, world.model_name + "-" + world.dataset + "-augmention_" + str(world.AUGMENTATION)))
             print("Model saved")
             print("Training of", world.model_name, "with dataset:", world.dataset, "took", end-start, "s")
             print()
@@ -69,7 +91,7 @@ if world.model_name in ['LeNet', 'VGGnet']:
     X_test_preprocessed = utils.preprocess(dataset.X_test)
 
     with tf.Session() as sess:
-        model.saver.restore(sess, os.path.join("..//", DIR, world.model_name + "-" + world.dataset))
+        model.saver.restore(sess, os.path.join("..//", DIR, world.model_name + "-" + world.dataset + "-augmention_" + str(world.AUGMENTATION)))
         start = time.time()
         y_pred = model.y_predict(X_test_preprocessed)
         end = time.time()

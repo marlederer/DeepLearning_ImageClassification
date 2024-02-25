@@ -52,4 +52,5 @@ def parse_args():
     parser.add_argument('--gpu_id', type=int, default=1)
     parser.add_argument('--gcn_model', type=str,
                         default='GTN', help='GTN')
+    parser.add_argument('--augmentation', type=int, default=0)
     return parser.parse_args()

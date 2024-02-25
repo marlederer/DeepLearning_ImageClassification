@@ -14,6 +14,7 @@ import csv
 import os
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
+tf.get_logger().setLevel('NONE')
 from tensorflow.keras.layers import Flatten
 from sklearn.metrics import confusion_matrix
 import model

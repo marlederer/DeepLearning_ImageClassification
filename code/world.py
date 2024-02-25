@@ -44,12 +44,14 @@ config['args'] = args
 config['dataset'] = args.dataset
 config['epochs'] = args.epochs
 config['lambda2'] = args.lambda2
+config['augmentation'] = args.augmentation
 
 seed = args.seed
 
 dataset = args.dataset
 model_name = args.model
 
+AUGMENTATION = args.augmentation
 BATCH_SIZE = args.bpr_batch
 TRAIN_epochs = args.epochs
 LOAD = args.load

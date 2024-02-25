@@ -1,2 +1,2 @@
-model_checkpoint_path: "VGGnet-cifar-10"
-all_model_checkpoint_paths: "VGGnet-cifar-10"
+model_checkpoint_path: "VGGnet-cifar-10-augmention_1"
+all_model_checkpoint_paths: "VGGnet-cifar-10-augmention_1"
