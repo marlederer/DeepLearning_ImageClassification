@@ -28,7 +28,6 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=2020, help='random seed')
 
     parser.add_argument('--prop_dropout', type=float, default=0.1)
-    parser.add_argument('--debug', type=bool, default=True)
     parser.add_argument('--ogb', type=bool, default=True)
     parser.add_argument('--incnorm_para', type=bool, default=True)
 

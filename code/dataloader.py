@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 import os
 import pickle
 import csv
+from sklearn.utils import shuffle
 
 #Set Dir
 current_dir = os.path.abspath(__file__)
@@ -51,12 +52,12 @@ class Loader():
                 test = pickle.load(f)
 
             # Mapping ClassID to traffic sign names
-            signs = []
+            label_names = []
             with open('..\\data\gtsrb\\signnames.csv', 'r') as csvfile:
                 signnames = csv.reader(csvfile, delimiter=',')
                 next(signnames, None)
                 for row in signnames:
-                    signs.append(row[1])
+                    label_names.append(row[1])
                 csvfile.close()
 
             self.X_train, self.y_train = train['features'], train['labels']
@@ -65,7 +66,7 @@ class Loader():
 
             self.n_classes = len(np.unique(self.y_train))
 
-            self.label_names = None
+            self.X_train, self.y_train = shuffle(self.X_train, self.y_train)
 
             print(f"{world.dataset} is ready to go")
             return;

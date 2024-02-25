@@ -22,14 +22,13 @@ from feature_extraction import evaluate_model, create_bag_of_visual_words, creat
 matplotlib.use('TkAgg')
 
 
-x = tf.placeholder(tf.float32, (None, 32, 32, 1))
-y = tf.placeholder(tf.int32, (None))
+x = tf.placeholder(tf.float32, (None, 32, 32, 1), name="x")
+y = tf.placeholder(tf.int32, (None), name="y")
+
+keep_prob = tf.placeholder(tf.float32, name="keep_prob")       # For fully-connected layers
+keep_prob_conv = tf.placeholder(tf.float32, name="keep_prob_conv")  # For convolutional layers
 
 # BOVW & Histogram
-
-
-keep_prob = tf.placeholder(tf.float32)       # For fully-connected layers
-keep_prob_conv = tf.placeholder(tf.float32)  # For convolutional layers
 
 
 class Histogram:
@@ -86,6 +85,7 @@ class BOVW:
         print("Confusion Matrix (SIFT + Bag of Words approach):")
         print(cm_bow)
 
+
 class LeNet:
 
     def __init__(self, n_out=10, mu=0, sigma=0.1, learning_rate=0.001):
@@ -95,6 +95,9 @@ class LeNet:
 
         self.x = x
         self.y = y
+
+        self.keep_prob = keep_prob
+        self.keep_prob_conv = keep_prob_conv
 
         # Layer 1 (Convolutional): Input = 32x32x1. Output = 28x28x6.
         self.filter1_width = 5
@@ -107,7 +110,7 @@ class LeNet:
             mean=self.mu, stddev=self.sigma))
         self.conv1_bias = tf.Variable(tf.zeros(self.conv1_output))
         # Apply Convolution
-        self.conv1 = tf.nn.conv2d(x, self.conv1_weight, strides=[1, 1, 1, 1], padding='VALID') + self.conv1_bias
+        self.conv1 = tf.nn.conv2d(self.x, self.conv1_weight, strides=[1, 1, 1, 1], padding='VALID') + self.conv1_bias
 
         # Activation:
         self.conv1 = tf.nn.relu(self.conv1)
@@ -208,6 +211,9 @@ class VGGnet:
         self.x = x
         self.y = y
 
+        self.keep_prob = keep_prob
+        self.keep_prob_conv = keep_prob_conv
+
         # Layer 1 (Convolutional): Input = 32x32x1. Output = 32x32x32.
         self.conv1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 1, 32), mean=self.mu, stddev=self.sigma))
         self.conv1_b = tf.Variable(tf.zeros(32))
@@ -305,8 +311,6 @@ class VGGnet:
         # Accuracy operation
         self.correct_prediction = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.one_hot_y, 1))
         self.accuracy_operation = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
-
-
 
         # Saving all variables
         self.saver = tf.train.Saver()
