@@ -1,3 +1,5 @@
+import os
+
 import utils
 import numpy as np
 import matplotlib
@@ -18,6 +20,8 @@ from tensorflow.keras.datasets import cifar10
 from sklearn.cluster import KMeans
 import cv2
 from feature_extraction import evaluate_model, create_bag_of_visual_words, create_visual_vocabulary, extract_sift_descriptors, extract_histograms
+import world
+import pickle
 
 matplotlib.use('TkAgg')
 
@@ -37,22 +41,47 @@ class Histogram:
         y_train = dataset.y_train
         y_test = dataset.y_test
 
+        start = time.time()
+
         X_train_hist = extract_histograms(dataset.X_train)
         X_test_hist = extract_histograms(dataset.X_test)
         X_train_hist = np.squeeze(X_train_hist)
         X_test_hist = np.squeeze(X_test_hist)
 
-        print('Training models...')
-        print('Training Random Forest Classifier for histogram-based approach...')
-        rf_classifier_hist = RandomForestClassifier(n_estimators=100, random_state=42)
-        rf_classifier_hist.fit(X_train_hist, y_train)
+        end = time.time()
+        print("Preprocessing of", world.model_name, "with dataset:", world.dataset, "took", end-start, "s")
+        print()
 
+        rf_classifier_hist = 0
+
+        print(os.getcwd())
+
+        if world.LOAD == 0:
+            print('Training models...')
+            print('Training Random Forest Classifier for histogram-based approach...')
+            start = time.time()
+            rf_classifier_hist = RandomForestClassifier(n_estimators=100, random_state=42)
+            rf_classifier_hist.fit(X_train_hist, y_train)
+            end = time.time()
+            print("Training of", world.model_name, "with dataset:", world.dataset, "took", end - start, "s")
+            with open(os.path.dirname(os.getcwd()) + '\\Saved_Models\\' + world.model_name + '-' + world.dataset + '.pkl', 'wb') as f:
+                pickle.dump(rf_classifier_hist, f)
+        else:
+            with open(os.path.dirname(os.getcwd()) + '\\Saved_Models\\' + world.model_name + '-' + world.dataset + '.pkl', 'rb') as f:
+                rf_classifier_hist = pickle.load(f)
+
+        start = time.time()
         acc_hist, cm_hist = evaluate_model(rf_classifier_hist, X_test_hist, y_test, dataset.label_names)
+
+        end = time.time()
+        print("Prediction of dataset:", world.dataset, "with model:", world.model_name, "took", end-start, "s")
+        print()
 
         print("Accuracy per class (Histogram-based approach):")
         print(acc_hist)
         print("Confusion Matrix (Histogram-based approach):")
         print(cm_hist)
+
 
 
 class BOVW:
@@ -63,22 +92,43 @@ class BOVW:
         X_test = dataset.X_test
         y_test = dataset.y_test
 
-        print("Num classes: ", dataset.n_classes) 
-        num_clusters = 10 * dataset.n_classes	
 
+        print("Num classes: ", dataset.n_classes)
+        num_clusters = 10 * dataset.n_classes
+
+        start = time.time()
         X_train_sift = extract_sift_descriptors(X_train)
-        X_test_sift = extract_sift_descriptors(X_test)
 
         kmeans, visual_vocabulary = create_visual_vocabulary(X_train_sift, num_clusters)
 
         X_train_bovw = create_bag_of_visual_words(X_train, kmeans, num_clusters)
         X_test_bovw = create_bag_of_visual_words(X_test, kmeans, num_clusters)
 
-        print('Training Random Forest Classifier for SIFT + Bag of Words approach...')
-        rf_classifier_bow = RandomForestClassifier(n_estimators=100, random_state=42)
-        rf_classifier_bow.fit(X_train_bovw, y_train)
+        end = time.time()
+        print("Preprocessing of", world.model_name, "with dataset:", world.dataset, "took", end-start, "s")
+        print()
 
+        rf_classifier_bow = 0
+
+        if world.LOAD == 0:
+            print('Training Random Forest Classifier for SIFT + Bag of Words approach...')
+            start = time.time()
+            rf_classifier_bow = RandomForestClassifier(n_estimators=100, random_state=42)
+            rf_classifier_bow.fit(X_train_bovw, y_train)
+            end = time.time()
+            print("Training of", world.model_name, "with dataset:", world.dataset, "took", end - start, "s")
+            with open(os.path.dirname(os.getcwd()) + '\\Saved_Models\\' + world.model_name + '-' + world.dataset + '.pkl', 'wb') as f:
+                pickle.dump(rf_classifier_bow, f)
+        else:
+            with open(os.path.dirname(os.getcwd()) + '\\Saved_Models\\' + world.model_name + '-' + world.dataset + '.pkl', 'rb') as f:
+                rf_classifier_bow = pickle.load(f)
+
+        start = time.time()
         acc_bow, cm_bow = evaluate_model(rf_classifier_bow, X_test_bovw, y_test, dataset.label_names)
+
+        end = time.time()
+        print("Prediction of dataset:", world.dataset, "with model:", world.model_name, "took", end-start, "s")
+        print()
 
         print("Accuracy per class (SIFT + Bag of Words approach):")
         print(acc_bow)

@@ -17,13 +17,14 @@ parent_dir = os.path.dirname(current_dir)
 os.chdir(parent_dir)
 
 
-def download_and_extract(url, save_path):
+def download_and_extract(url, saveZip_path, saveFolder_path):
     response = requests.get(url)
-    with open(save_path, 'wb') as f:
+    with open(saveZip_path, 'wb') as f:
         f.write(response.content)
 
-    with ZipFile(save_path, 'r') as zip_ref:
-        zip_ref.extractall(os.path.dirname(save_path))
+    with ZipFile(saveZip_path, 'r') as zip_ref:
+        os.mkdir(saveFolder_path)
+        zip_ref.extractall(os.path.dirname(saveFolder_path+"\\traffic-signs-data"))
 
 
 def load_data(file_path):
@@ -71,8 +72,10 @@ class Loader:
             else:
                 # Download and extract the zip file
                 zip_url = "https://d17h27t6h515a5.cloudfront.net/topher/2017/February/5898cd6f_traffic-signs-data/traffic-signs-data.zip"
-                zip_save_path = "..\\data\\gtsrb\\traffic-signs-data\\traffic-signs-data.zip"
-                download_and_extract(zip_url, zip_save_path)
+                zip_save_path = "..\\data\\gtsrb\\traffic-signs-data.zip"
+                folder_save_path = "..\\data\\gtsrb\\traffic-signs-data"
+
+                download_and_extract(zip_url, zip_save_path, folder_save_path)
 
                 # Load data after extraction
                 train = load_data(training_file)
