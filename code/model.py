@@ -22,6 +22,7 @@ import cv2
 from feature_extraction import evaluate_model, create_bag_of_visual_words, create_visual_vocabulary, extract_sift_descriptors, extract_histograms
 import world
 import pickle
+import time
 
 matplotlib.use('TkAgg')
 
