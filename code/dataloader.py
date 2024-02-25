@@ -6,6 +6,8 @@ import os
 import pickle
 import csv
 from sklearn.utils import shuffle
+from zipfile import ZipFile
+import requests
 
 #Set Dir
 current_dir = os.path.abspath(__file__)
@@ -14,7 +16,23 @@ parent_dir = os.path.dirname(current_dir)
 # Set the working directory to the parent directory
 os.chdir(parent_dir)
 
-class Loader():
+
+def download_and_extract(url, save_path):
+    response = requests.get(url)
+    with open(save_path, 'wb') as f:
+        f.write(response.content)
+
+    with ZipFile(save_path, 'r') as zip_ref:
+        zip_ref.extractall(os.path.dirname(save_path))
+
+
+def load_data(file_path):
+    with open(file_path, mode='rb') as f:
+        data = pickle.load(f)
+    return data
+
+
+class Loader:
     """
     Dataset type for pytorch \n
     Incldue graph information
@@ -37,27 +55,38 @@ class Loader():
             self.label_names = ['Airplane', 'Automobile', 'Bird', 'Cat', 'Deer', 'Dog', 'Frog', 'Horse', 'Ship', 'Truck']
 
             print(f"{world.dataset} is ready to go")
-            return;
+            return
 
         if "gtsrb" in path:
             training_file = "..\\data\gtsrb\\traffic-signs-data\\train.p"
             validation_file = "..\\data\gtsrb\\traffic-signs-data\\valid.p"
             testing_file = "..\\data\gtsrb\\traffic-signs-data\\test.p"
 
-            with open(training_file, mode='rb') as f:
-                train = pickle.load(f)
-            with open(validation_file, mode='rb') as f:
-                valid = pickle.load(f)
-            with open(testing_file, mode='rb') as f:
-                test = pickle.load(f)
+            # Check if files exist
+            if all(os.path.exists(file) for file in [training_file, validation_file, testing_file]):
+                # Load data
+                train = load_data(training_file)
+                valid = load_data(validation_file)
+                test = load_data(testing_file)
+            else:
+                # Download and extract the zip file
+                zip_url = "https://d17h27t6h515a5.cloudfront.net/topher/2017/February/5898cd6f_traffic-signs-data/traffic-signs-data.zip"
+                zip_save_path = "..\\data\\gtsrb\\traffic-signs-data\\traffic-signs-data.zip"
+                download_and_extract(zip_url, zip_save_path)
+
+                # Load data after extraction
+                train = load_data(training_file)
+                valid = load_data(validation_file)
+                test = load_data(testing_file)
+
 
             # Mapping ClassID to traffic sign names
-            label_names = []
+            self.label_names = []
             with open('..\\data\gtsrb\\signnames.csv', 'r') as csvfile:
                 signnames = csv.reader(csvfile, delimiter=',')
                 next(signnames, None)
                 for row in signnames:
-                    label_names.append(row[1])
+                    self.label_names.append(row[1])
                 csvfile.close()
 
             self.X_train, self.y_train = train['features'], train['labels']
