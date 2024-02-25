@@ -13,6 +13,7 @@ import utils
 import tensorflow.compat.v1 as tf
 
 tf.disable_v2_behavior()
+tf.get_logger().setLevel('NONE')
 
 import random
 import numpy as np

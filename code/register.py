@@ -4,9 +4,11 @@ import model
 import utils
 from pprint import pprint
 
-seed = 2020
 import random
 import numpy as np
+
+seed = 2020
+
 
 if world.dataset in ['cifar-10', 'gtsrb']:
     dataset = dataloader.Loader(path="../data/" + world.dataset)
@@ -26,8 +28,8 @@ if world.model_name == 'hist':
 elif world.model_name == 'bovw':
     MODELS['bovw'] = model.BOVW(dataset=dataset)
 elif world.model_name == 'LeNet':
-    MODELS['LeNet'] = model.LeNet(n_out=dataset.n_classes)
+    MODELS['LeNet'] = model.LeNet(n_out=dataset.n_classes, mu=world.mu, sigma=world.sigma)
 elif world.model_name == 'VGGnet':
-    MODELS['VGGnet'] = model.VGGnet(n_out=dataset.n_classes)
+    MODELS['VGGnet'] = model.VGGnet(n_out=dataset.n_classes, mu=world.mu, sigma=world.sigma)
 else:
     print("Unknown model name:", world.model_name)
