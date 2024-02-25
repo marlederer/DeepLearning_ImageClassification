@@ -3,7 +3,6 @@ import utils
 from world import cprint
 import numpy as np
 import time, datetime
-import Procedure
 from os.path import join
 import matplotlib
 import matplotlib.pyplot as plt
@@ -13,7 +12,6 @@ import utils
 import tensorflow.compat.v1 as tf
 
 tf.disable_v2_behavior()
-tf.get_logger().setLevel('NONE')
 
 import random
 import numpy as np

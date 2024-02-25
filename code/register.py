@@ -28,8 +28,8 @@ if world.model_name == 'hist':
 elif world.model_name == 'bovw':
     MODELS['bovw'] = model.BOVW(dataset=dataset)
 elif world.model_name == 'LeNet':
-    MODELS['LeNet'] = model.LeNet(n_out=dataset.n_classes, mu=world.mu, sigma=world.sigma)
+    MODELS['LeNet'] = model.LeNet(n_out=dataset.n_classes, mu=world.MU, sigma=world.SIGMA)
 elif world.model_name == 'VGGnet':
-    MODELS['VGGnet'] = model.VGGnet(n_out=dataset.n_classes, mu=world.mu, sigma=world.sigma)
+    MODELS['VGGnet'] = model.VGGnet(n_out=dataset.n_classes, mu=world.MU, sigma=world.SIGMA)
 else:
     print("Unknown model name:", world.model_name)
